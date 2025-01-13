@@ -1,3 +1,4 @@
 #ignore node_module directories 
 node_module/
-#other intitites 
+#other intitites
+node_module/.env
