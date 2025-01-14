@@ -1,11 +1,10 @@
 const express = require('express')
 const app = express()
 const connectMongo = require('./db/db');
-const Person=require('./models/person');
+
 const bodyParser=require('body-parser');
 app.use(bodyParser.json()); //req.body m save krega data 
-const passport=require('passport');
-const LocalStrategy=require('passport-local').Strategy;
+const passport=require('./auth')
 
 
 const logRequest = (req, res, next) => {
@@ -17,46 +16,22 @@ const logRequest = (req, res, next) => {
 app.use(logRequest);//for all rotes
 
 
-//using authetication using local module 
-passport.use(new LocalStrategy(async(USERNAME,password,done)=>{
-  //autthetication code here 
-  try {
-    console.log("receved credentials", USERNAME,password);
-    const user=await Person.findOne({username:USERNAME}); //match 
-    // kr rh hai ki nhi 
-   
 
-    if(!user){
-      return done(null,false,{message:"incorrect username" })
-    }
-    const isPassswordMatch=user.password===password? true : false ;
-
-    if(isPassswordMatch){
-      return done(null,user);
-    }
-    else{
-      return done(null,false,{message:"incorrect password"})
-    }
-
-  } catch (error) {
-     return done(error);
-  }
-}))
 
 //intialisse 
 app.use(passport.initialize());
 
 // #############################################
 
-
-app.get('/',passport.authenticate('local',{session:false}) ,function (req, res) {
+const localAuthMiddleware=passport.authenticate('local',{session:false});
+app.get('/',localAuthMiddleware ,function (req, res) {
   res.send('welcome to hotel.. howw can i help you ')
 }) 
 
 const personRoutes=require('./routes/personRoutes')
 app.use('/person',personRoutes);
 const menuRoutes=require('./routes/menuRoutes')
-app.use('/menu',menuRoutes);
+app.use('/menu',localAuthMiddleware,menuRoutes);
 
 
 //env file 
