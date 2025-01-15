@@ -7,6 +7,7 @@ app.use(bodyParser.json()); //req.body m save krega data
 const passport=require('./auth')
 
 
+
 const logRequest = (req, res, next) => {
   console.log(`[${new Date().toLocaleString()}] Request made to: ${req.originalUrl}`);
   next(); // Ensure next middleware/route is called
@@ -22,8 +23,10 @@ app.use(logRequest);//for all rotes
 app.use(passport.initialize());
 
 // #############################################
-
+///middle ware local strategy 
 const localAuthMiddleware=passport.authenticate('local',{session:false});
+
+
 app.get('/',localAuthMiddleware ,function (req, res) {
   res.send('welcome to hotel.. howw can i help you ')
 }) 

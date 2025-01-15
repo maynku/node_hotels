@@ -1,14 +1,44 @@
 const express = require("express");
 const router = express.Router();
 const Person = require('../models/person');
+const {jwtAuthMiddleware,generateToken}=require('../jwt');
+const passport = require("passport");
 
-router.post('/',async(req,res)=>{
+//login routes 
+router.post('/login',async(req,res)=>{
+    try {
+        const {username,password}=req.body;
+        //find user by username
+        const user=await Person.findOne({username:username});
+        //if user not exist or password does not match, return error 
+        if(!user || !(await user.comparePassword(password))){
+            return res.json({err :"invalid username or password"})
+        }
+        //genrate token 
+        const payload={
+            id:user.id,
+            username:user.username
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.json({error:'internl server error'})
+    }
+})
+
+
+
+router.post('/signup',async(req,res)=>{
     try{
         const data=req.body
         const newPerson=new Person(data);
         const response=await newPerson.save();
         console.log("data savwed")
-        res.json(response);
+
+        const token=generateToken(response.username)
+        console.log(token);
+
+        res.json({response:response,token:token});
     }
     catch(err){
         console.log(err);
@@ -44,7 +74,7 @@ router.get('/:workType',async(req,res)=>{
         res.json({error:'internal server error'})
     }
 })
-
+//update 
 router.put('/:id',async(req,res)=>{
     try{
         const id=req.params.id; //extract id provided type
